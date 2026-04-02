@@ -26,4 +26,10 @@ jobs:
 
       - name: Run Tests
         # Running tests on all packages in the repository
+        run: go test -v -coverprofile=coverage.txt -coverpkg=./... ./...
+
+      - name: Run Tests
+        env:
+          LOG_ENABLED: "true"
+          Environment: "development"
         run: go test -v -cover ./...
