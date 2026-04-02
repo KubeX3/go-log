@@ -1,0 +1,29 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          # Using a stable Go version
+          go-version: '1.21'
+          # This automatically caches go modules
+          cache: true
+
+      - name: Install Dependencies
+        run: go mod download
+
+      - name: Run Tests
+        # Running tests on all packages in the repository
+        run: go test -v -cover ./...
