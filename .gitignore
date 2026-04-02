@@ -17,6 +17,7 @@
 # Go workspace file
 go.work
 tmp/
+main.go
 
 # IDE specific files
 .vscode
@@ -31,4 +32,7 @@ main
 
 # OS X generated file
 .DS_Store
+
+# Logs
+logs/
 
