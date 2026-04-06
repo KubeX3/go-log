@@ -35,4 +35,5 @@ main
 
 # Logs
 logs/
+coverage.txt
 

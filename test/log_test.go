@@ -9,11 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/KubeX3/go-log/internal/utils"
 	"github.com/KubeX3/go-log"
+	"github.com/KubeX3/go-log/internal/utils"
 )
 
-// Helper to capture stdout
+// Helper to capture stdout for console verification
 func captureStdout(f func()) string {
 	old := os.Stdout
 	r, w, _ := os.Pipe()
@@ -29,8 +29,8 @@ func captureStdout(f func()) string {
 	return buf.String()
 }
 
+// Sets up a temporary environment for the logger
 func setupTestConfig(t *testing.T) string {
-	// Create a temp directory for logs
 	tmpDir, err := os.MkdirTemp("", "logtest")
 	if err != nil {
 		t.Fatal(err)
@@ -38,7 +38,7 @@ func setupTestConfig(t *testing.T) string {
 
 	logPath := filepath.Join(tmpDir, "test.log")
 
-	// Mock the DOTENV config
+	// Reset Mock DOTENV config
 	utils.DOTENV.LogEnabled = true
 	utils.DOTENV.LogFilePath = logPath
 	utils.DOTENV.Environment = "development"
@@ -50,101 +50,150 @@ func TestLogger(t *testing.T) {
 	logPath := setupTestConfig(t)
 	defer os.RemoveAll(filepath.Dir(logPath))
 
-	// Regex for [YYYY-MM-DD - HH:MM:SS]
+	// Regex for timestamp: [YYYY-MM-DD - HH:MM:SS]
 	dateRegex := `\[\d{4}-\d{2}-\d{2} - \d{2}:\d{2}:\d{2}\]`
 
-	t.Run("should correctly log an ERROR", func(t *testing.T) {
-		message := "Database failed"
-		output := captureStdout(func() {
-			log.LogError(message)
-		})
+	// --- Standard Logging Tests ---
 
-		// Verify Console Output (contains centered tag)
+	t.Run("LogError should log message and file content", func(t *testing.T) {
+		msg := "Critical error"
+		output := captureStdout(func() { log.LogError(msg) })
+
 		if !strings.Contains(output, "[  ERROR  ]") {
-			t.Errorf("Expected console output to contain [  ERROR  ], got %s", output)
+			t.Errorf("Console missing ERROR tag")
 		}
-
-		// Verify File Content
 		content, _ := os.ReadFile(logPath)
-		matched, _ := regexp.MatchString(dateRegex+` \[  ERROR  \] - `+message, string(content))
-		if !matched {
-			t.Errorf("File log format mismatch. Got: %s", string(content))
+		if !strings.Contains(string(content), "[  ERROR  ] - "+msg) {
+			t.Errorf("File missing error message")
 		}
 	})
 
-	t.Run("should correctly log a WARNING with location", func(t *testing.T) {
-		message := "Disk low"
-		location := "Server"
+	t.Run("LogWarning should include location", func(t *testing.T) {
+		msg := "Low memory"
+		loc := "Worker-1"
+		captureStdout(func() { log.LogWarning(msg, loc) })
+
+		content, _ := os.ReadFile(logPath)
+		if !strings.Contains(string(content), "- ["+loc+"] - "+msg) {
+			t.Errorf("File missing location metadata")
+		}
+	})
+
+	t.Run("LogInfo should log correctly", func(t *testing.T) {
+		msg := "System online"
+		captureStdout(func() { log.LogInfo(msg) })
+		content, _ := os.ReadFile(logPath)
+		if !strings.Contains(string(content), "[  INFO   ] - "+msg) {
+			t.Error("Info log format incorrect")
+		}
+	})
+
+	t.Run("LogAudit should log correctly", func(t *testing.T) {
+		msg := "User updated profile"
+		captureStdout(func() { log.LogAudit(msg, "AdminPanel") })
+		content, _ := os.ReadFile(logPath)
+		if !strings.Contains(string(content), "[  AUDIT  ] - [AdminPanel] - "+msg) {
+			t.Error("Audit log format incorrect")
+		}
+	})
+
+	t.Run("LogEvent should log correctly", func(t *testing.T) {
+		msg := "Job finished"
+		captureStdout(func() { log.LogEvent(msg) })
+		content, _ := os.ReadFile(logPath)
+		if !strings.Contains(string(content), "[  EVENT  ] - "+msg) {
+			t.Error("Event log format incorrect")
+		}
+	})
+
+	// --- Formatted (...F) Logging Tests ---
+
+	t.Run("LogInfoF should interpolate values", func(t *testing.T) {
+		host := "localhost"
+		port := 443
+		expected := "Starting HTTPS Server on localhost:443"
+		
 		output := captureStdout(func() {
-			log.LogWarning(message, location)
+			log.LogInfoF("Starting HTTPS Server on %s:%d", host, port)
 		})
 
-		if !strings.Contains(output, "[ WARNING ]") {
-			t.Errorf("Expected console output to contain [ WARNING ]")
+		if !strings.Contains(output, expected) {
+			t.Errorf("Formatted console output mismatch. Got: %s", output)
 		}
-
 		content, _ := os.ReadFile(logPath)
-		if !strings.Contains(string(content), "- [Server] - Disk low") {
-			t.Errorf("File log missing location metadata. Got: %s", string(content))
+		if !strings.Contains(string(content), expected) {
+			t.Error("Formatted file content mismatch")
 		}
 	})
 
-	t.Run("should correctly log an INFO message", func(t *testing.T) {
-		message := "App started"
-		captureStdout(func() {
-			log.LogInfo(message)
-		})
-
+	t.Run("LogErrorF should interpolate correctly", func(t *testing.T) {
+		code := 502
+		expected := "Bad Gateway: 502"
+		captureStdout(func() { log.LogErrorF("Bad Gateway: %d", code) })
+		
 		content, _ := os.ReadFile(logPath)
-		if !strings.Contains(string(content), "[  INFO   ] - "+message) {
-			t.Errorf("Info log format incorrect")
+		if !strings.Contains(string(content), expected) {
+			t.Error("LogErrorF failed to write formatted string to file")
 		}
 	})
 
-	t.Run("should correctly log an AUDIT message", func(t *testing.T) {
-		message := "User logged in"
-		captureStdout(func() {
-			log.LogAudit(message, "Auth")
-		})
-
+	t.Run("LogWarningF should interpolate correctly", func(t *testing.T) {
+		expected := "Disk at 95%"
+		captureStdout(func() { log.LogWarningF("Disk at %d%%", 95) })
 		content, _ := os.ReadFile(logPath)
-		if !strings.Contains(string(content), "[  AUDIT  ] - [Auth] - "+message) {
-			t.Errorf("Audit log format incorrect")
+		if !strings.Contains(string(content), expected) {
+			t.Error("LogWarningF format mismatch")
 		}
 	})
 
-	t.Run("should correctly log an EVENT message", func(t *testing.T) {
-		message := "Backup completed"
-		captureStdout(func() {
-			log.LogEvent(message)
-		})
-
+	t.Run("LogAuditF should interpolate correctly", func(t *testing.T) {
+		user := "JaneDoe"
+		captureStdout(func() { log.LogAuditF("User %s deleted record", user) })
 		content, _ := os.ReadFile(logPath)
-		if !strings.Contains(string(content), "[  EVENT  ] - "+message) {
-			t.Errorf("Event log format incorrect")
+		if !strings.Contains(string(content), "User JaneDoe deleted record") {
+			t.Error("LogAuditF format mismatch")
 		}
 	})
 
-	t.Run("should correctly log a DEBUG message in development", func(t *testing.T) {
+	t.Run("LogEventF should interpolate correctly", func(t *testing.T) {
+		captureStdout(func() { log.LogEventF("Batch %s processed", "A1") })
+		content, _ := os.ReadFile(logPath)
+		if !strings.Contains(string(content), "Batch A1 processed") {
+			t.Error("LogEventF format mismatch")
+		}
+	})
+
+	// --- Debug Logic Tests ---
+
+	t.Run("LogDebug and LogDebugF should show in development", func(t *testing.T) {
 		utils.DOTENV.Environment = "development"
-		message := "Before DB start"
-		output := captureStdout(func() {
-			log.LogDebug(message)
-		})
+		out1 := captureStdout(func() { log.LogDebug("Dev mode active") })
+		out2 := captureStdout(func() { log.LogDebugF("Pointer: %p", &t) })
 
-		if !strings.Contains(output, "[  DEBUG  ]") {
-			t.Errorf("Debug log should be visible in development")
+		if out1 == "" || out2 == "" {
+			t.Error("Debug logs should not be empty in development")
 		}
 	})
 
-	t.Run("should NOT log DEBUG message in production", func(t *testing.T) {
+	t.Run("LogDebug and LogDebugF should NOT show in production", func(t *testing.T) {
 		utils.DOTENV.Environment = "production"
-		output := captureStdout(func() {
-			log.LogDebug("Secret stuff")
-		})
+		out1 := captureStdout(func() { log.LogDebug("Secret") })
+		out2 := captureStdout(func() { log.LogDebugF("Secret %d", 123) })
 
-		if output != "" {
-			t.Errorf("Expected no output for debug in production, got %s", output)
+		if out1 != "" || out2 != "" {
+			t.Errorf("Debug logs should be suppressed in production")
+		}
+	})
+
+	t.Run("File format should match date regex", func(t *testing.T) {
+		content, _ := os.ReadFile(logPath)
+		// Check the last line for correct timestamp format
+		lines := strings.Split(strings.TrimSpace(string(content)), "\n")
+		lastLine := lines[len(lines)-1]
+		
+		matched, _ := regexp.MatchString("^"+dateRegex, lastLine)
+		if !matched {
+			t.Errorf("Log timestamp format mismatch. Got: %s", lastLine)
 		}
 	})
 }

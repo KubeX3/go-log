@@ -110,29 +110,62 @@ func writeLog(lType enums.LogType, color string, message string, location []stri
 
 // --- Exported Functions ---
 
+// Error
 func LogError(message string, location ...string) {
 	writeLog(enums.ERROR, ColorRed, message, location)
 }
 
+func LogErrorF(format string, args ...interface{}) {
+	writeLog(enums.ERROR, ColorRed, fmt.Sprintf(format, args...), nil)
+}
+
+// Warning
 func LogWarning(message string, location ...string) {
 	writeLog(enums.WARNING, ColorYellow, message, location)
 }
 
+func LogWarningF(format string, args ...interface{}) {
+	writeLog(enums.WARNING, ColorYellow, fmt.Sprintf(format, args...), nil)
+}
+
+// Info
 func LogInfo(message string, location ...string) {
 	writeLog(enums.INFO, ColorGreen, message, location)
 }
 
+func LogInfoF(format string, args ...interface{}) {
+	writeLog(enums.INFO, ColorGreen, fmt.Sprintf(format, args...), nil)
+}
+
+// Audit
 func LogAudit(message string, location ...string) {
 	writeLog(enums.AUDIT, ColorCyan, message, location)
 }
 
+func LogAuditF(format string, args ...interface{}) {
+	writeLog(enums.AUDIT, ColorCyan, fmt.Sprintf(format, args...), nil)
+}
+
+// Event
 func LogEvent(message string, location ...string) {
 	writeLog(enums.EVENT, ColorMagenta, message, location)
 }
 
+func LogEventF(format string, args ...interface{}) {
+	writeLog(enums.EVENT, ColorMagenta, fmt.Sprintf(format, args...), nil)
+}
+
+// Debug
 func LogDebug(message string, location ...string) {
 	if utils.DOTENV.Environment == "production" {
 		return
 	}
 	writeLog(enums.DEBUG, ColorReset, message, location)
+}
+
+func LogDebugF(format string, args ...interface{}) {
+	if utils.DOTENV.Environment == "production" {
+		return
+	}
+	writeLog(enums.DEBUG, ColorReset, fmt.Sprintf(format, args...), nil)
 }
