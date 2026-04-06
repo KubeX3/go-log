@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/KubeX3/go-log/internal/utils"
-	"github.com/KubeX3/go-log/cmd/package"
+	"github.com/KubeX3/go-log"
 )
 
 // Helper to capture stdout
