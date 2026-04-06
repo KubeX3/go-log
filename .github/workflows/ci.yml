@@ -16,17 +16,14 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22.x' 
+          go-version: '1.25.x' 
           cache: true
 
       - name: Install Dependencies
         run: go mod download
 
-      - name: Run Tests
-        run: go test -v -coverprofile=coverage.txt -coverpkg=./... ./...
-
-      - name: Run Tests
+      - name: Run Tests with Coverage
         env:
           LOG_ENABLED: "true"
           Environment: "development"
-        run: go test -v -cover ./...
+        run: go test -v -coverprofile=coverage.txt -coverpkg=./... ./...
