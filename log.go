@@ -169,3 +169,14 @@ func LogDebugF(format string, args ...interface{}) {
 	}
 	writeLog(enums.DEBUG, ColorReset, fmt.Sprintf(format, args...), nil)
 }
+
+// LogFatal 
+func LogFatal(message string, location ...string) {
+    LogError(message, location...);
+    os.Exit(1); // Kill the app
+}
+
+func LogFatalF(format string, args ...interface{}) {
+    LogErrorF(format, args...);
+    os.Exit(1);
+}

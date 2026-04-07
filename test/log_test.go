@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -196,4 +197,47 @@ func TestLogger(t *testing.T) {
 			t.Errorf("Log timestamp format mismatch. Got: %s", lastLine)
 		}
 	})
+
+	// --- Fatal Logging Tests ---
+
+    t.Run("LogFatal should exit with code 1 and log message", func(t *testing.T) {
+        // We run the test in a subprocess because LogFatal calls os.Exit(1)
+        if os.Getenv("BE_CRASHER") == "1" {
+            log.LogFatal("Critical failure")
+            return
+        }
+
+        // Spawn a subprocess of the current test
+        cmd := exec.Command(os.Args[0], "-test.run=TestLogger/LogFatal_should_exit_with_code_1_and_log_message")
+        cmd.Env = append(os.Environ(), "BE_CRASHER=1")
+        err := cmd.Run()
+
+        // Check if the exit code was 1
+        if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+            if e.ExitCode() != 1 {
+                t.Errorf("Expected exit status 1, got %d", e.ExitCode())
+            }
+        } else {
+            t.Fatalf("Process ran successfully, but it should have exited with status 1")
+        }
+    })
+
+    t.Run("LogFatalF should exit with code 1 and log formatted message", func(t *testing.T) {
+        if os.Getenv("BE_CRASHER_F") == "1" {
+            log.LogFatalF("Fatal error code: %d", 500)
+            return
+        }
+
+        cmd := exec.Command(os.Args[0], "-test.run=TestLogger/LogFatalF_should_exit_with_code_1_and_log_formatted_message")
+        cmd.Env = append(os.Environ(), "BE_CRASHER_F=1")
+        err := cmd.Run()
+
+        if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+            if e.ExitCode() != 1 {
+                t.Errorf("Expected exit status 1, got %d", e.ExitCode())
+            }
+        } else {
+            t.Fatalf("Process ran successfully, but it should have exited with status 1")
+        }
+    })
 }
