@@ -33,7 +33,7 @@ Configuration Options
 | :--- | :--- | :--- |
 | `LOG_ENABLED` | Set to `true` to write logs to a file, or `false` to only show them in the console. | `true` |
 | `LOG_FILE_PATH` | The relative or absolute path where the log file should be created. | `./logs/system.log` |
-| `Environment` | Set to `production` to optimize logging and suppress verbose debug output. | `development` |
+| `ENV` | Set to `production` to optimize logging and suppress verbose debug output. | `development` |
 
 ### Example `.env` Setup
 ```env
@@ -44,7 +44,7 @@ LOG_ENABLED="true"
 LOG_FILE_PATH="./src/storage/logs/application.log"
 
 # Environment setting (affects log verbosity)
-Environment="production"
+ENV="production"
 ```
 
 ---

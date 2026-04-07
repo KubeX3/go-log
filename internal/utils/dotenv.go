@@ -25,7 +25,7 @@ func init() {
 		log.Println("No .env file found, using system env")
 	}
 
-	environment := getEnv("Environment", "development")
+	environment := getEnv("ENV", "development")
 
 	now := time.Now()
 	fmt.Printf(
