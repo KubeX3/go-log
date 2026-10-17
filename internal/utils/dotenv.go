@@ -29,7 +29,7 @@ func init() {
 
 	now := time.Now()
 	fmt.Printf(
-		"\x1b[90m[%d/%02d/%02d - %02d:%02d:%02d] \x1b[32m[  INFO   ] \x1b[37m- \x1b[90m[config.go] \x1b[37m- \x1b[37m%s\n",
+		"\x1b[90m[%d-%02d-%02d - %02d:%02d:%02d] \x1b[32m[  INFO   ] \x1b[37m- \x1b[90m[config.go] \x1b[37m- \x1b[37m%s\n",
 		now.Year(), now.Month(), now.Day(),
 		now.Hour(), now.Minute(), now.Second(),
 		"Dotenv inject",
