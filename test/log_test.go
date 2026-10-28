@@ -41,6 +41,7 @@ func setupTestConfig(t *testing.T) string {
 
 	// Reset Mock DOTENV config
 	utils.DOTENV.LogEnabled = true
+	utils.DOTENV.LogFileEnabled = true
 	utils.DOTENV.LogFilePath = logPath
 	utils.DOTENV.Environment = "development"
 
