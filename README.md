@@ -31,20 +31,24 @@ Configuration Options
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
-| `LOG_ENABLED` | Set to `true` to write logs to a file, or `false` to only show them in the console. | `true` |
+| `ENV` | Set to `production` to optimize logging and suppress verbose debug output. | `production` |
+| `LOG_ENABLED` | Set to `true` to write logs in console. | `true` |
+| `LOG_FILE_ENABLED` | Set to `true` to write logs to a file. | `true` |
 | `LOG_FILE_PATH` | The relative or absolute path where the log file should be created. | `./logs/system.log` |
-| `ENV` | Set to `production` to optimize logging and suppress verbose debug output. | `development` |
 
 ### Example `.env` Setup
 ```env
-# Enable or disable file logging (true/false)
+# Environment setting (affects log verbosity)
+ENV="production"
+
+# Enable or disable logging (true/false)
 LOG_ENABLED="true"
+
+# Enable or disable file logging (true/false)
+LOG_FILE_ENABLED="true"
 
 # Custom location for your log files
 LOG_FILE_PATH="./src/storage/logs/application.log"
-
-# Environment setting (affects log verbosity)
-ENV="production"
 ```
 
 ---
