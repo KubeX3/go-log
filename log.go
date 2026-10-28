@@ -23,12 +23,24 @@ const (
 )
 
 /**
- * Appends the log message to file synchronously (simulated via standard IO)
+ * Log on terminal
  */
-func logFile(logWithColor string, logWithoutColor string) {
+func log(logWithColor string) {
 	logEnabled := utils.DOTENV.LogEnabled
 
 	if logEnabled {
+		fmt.Println(logWithColor)
+	}
+}
+
+
+/**
+ * Appends the log message to file synchronously (simulated via standard IO)
+ */
+func logFile(logWithoutColor string) {
+	logFileEnabled := utils.DOTENV.LogFileEnabled
+
+	if logFileEnabled {
 		filePath := utils.DOTENV.LogFilePath
 		dir := filepath.Dir(filePath)
 
@@ -49,7 +61,6 @@ func logFile(logWithColor string, logWithoutColor string) {
 			}
 		}
 	}
-	fmt.Println(logWithColor)
 }
 
 // Format date & time
@@ -105,7 +116,8 @@ func writeLog(lType enums.LogType, color string, message string, location []stri
 	logWithoutColor := fmt.Sprintf("%s %s%s - %s",
 		timeStr, typeStr, locPartPlain, message)
 
-	logFile(logWithColor, logWithoutColor)
+	logFile(logWithoutColor)
+	log(logWithColor)
 }
 
 // --- Exported Functions ---

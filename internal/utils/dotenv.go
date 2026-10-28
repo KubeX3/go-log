@@ -11,9 +11,10 @@ import (
 
 // Config holds environment variables
 type Config struct {
-	Environment string
-	LogEnabled  bool
-	LogFilePath string
+	Environment 	string
+	LogEnabled  	bool
+	LogFileEnabled 	bool
+	LogFilePath 	string
 }
 
 var DOTENV Config
@@ -25,7 +26,7 @@ func init() {
 		log.Println("No .env file found, using system env")
 	}
 
-	environment := getEnv("ENV", "development")
+	environment := getEnv("ENV", "production")
 
 	now := time.Now()
 	fmt.Printf(
@@ -38,7 +39,8 @@ func init() {
 	// Initialize the Global Config
 	DOTENV = Config{
 		Environment:     environment,
-		LogEnabled:  getEnvBool("LOG_ENABLED", true),
+		LogEnabled: getEnvBool("LOG_ENABLED", true),
+		LogFileEnabled:  getEnvBool("LOG_FILE_ENABLED", true),
 		LogFilePath: getEnv("LOG_FILE_PATH", "./logs/system.log"),
 	}
 }
